@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Packed Bubble Visualization</title>
+    <link rel="icon" href="favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+</head>
+<body>
+    <div class="container">
+    <div class="row">
+    <div class="col">
+        <div class="row head">
+    <h3>Packed Bubble Visualization for <br>Crimes in U.S.</h1></div>
+    <div class="row ">
+        <label for="crime-select">Select a crime:</label>
+        <select id="crime-select">
+            <option value="murder_rate">Murder</option>
+            <option value="robbery_rate">Robbery</option>
+            <option value="rape_rate">Rape</option>
+            <option value="agg_rate">Aggravated Assault</option>
+        </select>
+    </div>
+    </div>
+    <div class="col">
+    <div id="chart" class="diag"></div></div></div>
+    <div class="back">
+<a href="d3.html">
+    <button class="btn btn-light">Go Back</button>
+</a></div>
+</div>
+    <script>
+        // Set up the dimensions of the chart
+        const width = 600;
+        const height = 600;
+
+        // Select the chart container
+        const chartContainer = d3.select("#chart");
+
+        // Set up the pack layout and scale
+        const pack = d3.pack()
+            .size([width - 2, height - 2])
+            .padding(3);
+
+        // Load the data
+        d3.csv("https://raw.githubusercontent.com/IlluminatiP1/dataf/main/data.csv").then(function(data) {
+            // Select the crime dropdown and get its value
+            const crimeDropdown = d3.select("#crime-select");
+            const selectedCrime = crimeDropdown.property("value");
+
+            // Group the data by jurisdiction
+            const groupedData = d3.group(data, d => d.jurisdiction);
+
+            // Compute the sum of the selected crime for each jurisdiction
+            const jurisdictionData = Array.from(groupedData, ([key, values]) => {
+                const totalCrime = d3.sum(values, d => +d[selectedCrime]);
+                return { name: key, value: totalCrime };
+            });
+
+            // Sort the data in descending order by the selected crime
+            jurisdictionData.sort((a, b) => b.value - a.value);
+
+            // Create the hierarchy
+            const root = d3.hierarchy({ children: jurisdictionData })
+                .sum(d => d.value);
+
+            // Compute the pack layout
+            pack(root);
+
+            // Create the SVG element
+            const svg = chartContainer.append("svg")
+                .attr("viewBox", `0 0 ${width} ${height}`)
+                .attr("width", width)
+                .attr("height", height);
+
+            // Add the circles to the chart
+            const circles = svg.selectAll("circle")
+                .data(root.descendants())
+                .join("circle")
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y)
+                .attr("r", d => d.r)
+                .style("fill", d => d.children ? "white" : getColor(d.data.name))
+                .style("stroke", d => d.children ? "steelblue" : "none")
+                .attr("fill", d => d.children ? "none" : "steelblue")
+                .attr("stroke", "#000");
+
+            // Add the labels to the chart
+            const labels = svg.selectAll("text")
+                .data(root.descendants())
+                .join("text")
+                .attr("text-anchor", "middle")
+                .attr("dy", "0.3em")
+                .attr("x", d => d.x)
+                .attr("y", d => d.y)
+                .attr("font-size", d => d.children ? 12 : 10)
+                .attr("font-weight", d => d.children ? "bold" : "normal")
+                .text(d => d.data.name);
+
+            // Update the chart when the crime dropdown changes
+            crimeDropdown.on("change", function() {
+            const selectedCrime = crimeDropdown.property("value");
+            const jurisdictionData = Array.from(groupedData, ([key, values]) => {
+                const totalCrime = d3.sum(values, d => +d[selectedCrime]);
+                return { name: key, value: totalCrime };
+            });
+            jurisdictionData.sort((a, b) => b.value - a.value);
+            const root = d3.hierarchy({ children: jurisdictionData })
+                .sum(d => d.value);
+            pack(root);
+            circles.data(root.descendants())
+                .transition()
+                .duration(1000)
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y)
+                .attr("r", d => d.r);
+            labels.data(root.descendants())
+                .transition()
+                .duration(1000)
+                .attr("x", d => d.x)
+                .attr("y", d => d.y)
+                .text(d => d.data.name);
+        });
+    });
+    function getColor(jurisdiction) {
+            const colorScale = d3.scaleOrdinal(d3.schemeSet2);
+            return colorScale(jurisdiction);
+        }
+</script>
+</body>
+</html>
