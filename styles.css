@@ -1,9 +1,9 @@
 .baap {
-  background-color: #ebebe8;
+  background-color: #f8f8e8;
 }
 .baapl {
-  width: 50%;
-  font-size: 1.2rem;
+  width: 80%;
+  font-size: 1rem;
 }
 .bada {
   font-size: 1.2rem;
@@ -12,7 +12,8 @@ body {
   font-family: "Merriweather", serif;
   font-size: 20px;
   margin: 0;
-  background-color: #ebebe8;
+  background-color: #f8f8e8;
+
   overflow-x: hidden;
 }
 .work {
@@ -125,4 +126,21 @@ div {
   justify-content: space-between;
   align-items: center;
   box-shadow: #0000001a 0px 0px 10px;
+}
+
+.font-h1 {
+  color: rgb(43, 104, 226);
+  font-size: 40px;
+}
+
+.containers {
+  border-radius: 8px;
+  border-color: #f5eaea;
+  box-shadow: #0000001a 0px 0px 10px;
+  padding: 20px;
+}
+
+#particles-js {
+  background: black;
+  height: 100vh;
 }
